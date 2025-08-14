@@ -14,7 +14,6 @@ from pathlib import Path
 import cloudinary
 import cloudinary.uploader
 import cloudinary.api
-from decouple import config, Csv
 import dj_database_url
 import os
 from dotenv import load_dotenv
