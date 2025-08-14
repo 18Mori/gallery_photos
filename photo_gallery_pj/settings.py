@@ -11,11 +11,14 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
-# import cloudinary
-# import cloudinary.uploader
-# import cloudinary.api
-# from decouple import config, Csv
-# import dj_database_url
+import cloudinary
+import cloudinary.uploader
+import cloudinary.api
+from decouple import config, Csv
+import dj_database_url
+import os
+from dotenv import load_dotenv
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -25,12 +28,23 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-y7lntw+0r^o@6480r!^)qwzx(6qx529@b4^&g=7tx%t@p7$@-6'
+SECRET_KEY = os.getenv('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv('DEBUG')
 
-ALLOWED_HOSTS = []
+cloudinary.config( 
+  cloud_name = os.getenv('CLOUD_NAME'), 
+  api_key = os.getenv('API_KEY'),
+  api_secret = os.getenv('API_SECRET'), 
+  secure = True
+)
+
+
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '127.0.0.1').split(',')
+
+
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
 
 # Application definition
@@ -43,6 +57,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'gallery',
+    'cloudinary',
+    'cloudinary_storage',
 ]
 
 
@@ -57,6 +73,8 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'photo_gallery_pj.urls'
+
+CSRF_TRUSTED_ORIGINS = ['http://127.0.0.1:8000']
 
 TEMPLATES = [
     {
@@ -80,14 +98,9 @@ WSGI_APPLICATION = 'photo_gallery_pj.wsgi.application'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'photogallery',
-        'USER': 'db_user',
-        'PASSWORD': 'gallery123',
-        'HOST': 'localhost',
-        'PORT': '5432',
-    }
+    'default': dj_database_url.config(default=os.getenv('DATABASE_URL'),conn_max_age=600)
+    
+
 }
 
 
@@ -126,7 +139,8 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = 'static/'
-STATICFILES_DIRS = [BASE_DIR/"static"]
+STATICFILES_DIRS = [BASE_DIR / "static"]
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
