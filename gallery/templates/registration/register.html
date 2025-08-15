@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>{% block title %} Registration {% endblock title %}</title>
+        <script src="https://cdn.tailwindcss.com"></script> 
+    </head>
+    <body>
+<div class="container mx-auto p-4">
+            <nav class="flex justify-between items-center bg-gray-800 text-white p-4">
+                <a href="{% url 'home' %}" class="text-lg font-bold">Home</a>
+            </nav>
+          </div>
+          <div>
+            <div>
+            <h2>Create an Account</h2>
+            <p>Or
+              {% comment %} <a href="{% url 'login' %}">login</a> {% endcomment %}
+            </p>
+          </div>
+          <div>
+            <form method="POST">
+              {% csrf_token %}
+
+              {% if form.errors %}
+              <div>
+                <div>
+                <p>Please correct the following errors.</p>
+              </div>
+              </div>
+              {% endif %}
+              <div>
+                <label for="username">Username:</label>
+                <input type="text" id="username" name="username" value="{{ form.username.value }}"
+                      required>
+                        <ul>
+                          {% for error in form.username.errors %}
+                            <li>{{ error }}</li>
+                          {% endfor %}
+                        </ul>
+                      </div>
+                      <div>
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email" value="{{ form.email.value }}"
+                      required>
+                <ul>
+                  {% for error in form.email.errors %}
+                    <li>{{ error }}</li>
+                  {% endfor %}
+                </ul>
+              </div>
+                <div>
+                  <label for="id_password1">Password:</label>
+                  <input type="password" id="id_password1" name="password1" required>
+                  <ul>
+                    {% for error in form.password1.errors %}
+                      <li>{{ error }}</li>
+                    {% endfor %}
+                  </ul>
+                </div>
+                <div>
+                  <label for="id_password2">Confirm Password:</label>
+                  <input type="password" id="id_password2" name="password2" required>
+                  <ul>
+                    {% for error in form.password2.errors %}
+                      <li>{{ error }}</li>
+                    {% endfor %}
+                  </ul>
+                  </div>
+                  <div>
+                    <button type="submit">Register</button>
+                  </div>
+              </div>
+            </form>
+          </div>
+          </div>
+    </body>
+</html>
