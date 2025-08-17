@@ -1,11 +1,16 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from urllib3 import request
 from .models import Photo, Tag, userProfile 
 from .forms import UserRegistrationForm, UserProfileForm
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login as auth_login
-
-
-
+from django.contrib.auth import authenticate
+from django.views.decorators.http import require_http_methods
+from django.contrib import messages
+from django.contrib.auth import logout
+from django.shortcuts import redirect
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_POST
 
 def home(request):
   photo = Photo.objects.all()
@@ -15,6 +20,26 @@ def home(request):
 def photo_detail(request, pk):
   photo = get_object_or_404(Photo, pk=pk)
   return render(request, 'photo_detail.html', {'photo': photo})
+
+@require_http_methods(["GET", "POST"])
+def login(request):
+    if request.user.is_authenticated:
+        return redirect('home')
+      
+    if request.method == 'POST':
+      username = request.POST.get('username')
+      password = request.POST.get('password')
+      remember_me = request.POST.get('remember_me',False)
+      user = authenticate(request, username=username, password=password)
+
+      if user is not None:
+          auth_login(request, user)
+          if remember_me:
+              request.session.set_expiry(1209600)  # 2 weeks
+          return redirect('home')
+      else:
+          messages.error(request, 'Invalid username or password.')
+    return render(request, 'registration/login.html')
 
 @login_required
 def like_photo(request, pk):
@@ -59,3 +84,10 @@ def profile(request):
   else:
     form = UserProfileForm(instance=profile)
   return render(request, 'registration/profile.html', {'form': form})
+
+@require_POST
+@login_required
+def logout_user(request):
+    logout(request)
+    messages.success(request, 'You have been logged out.')
+    return redirect('home')
