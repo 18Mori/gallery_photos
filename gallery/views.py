@@ -8,18 +8,28 @@ from django.contrib.auth import authenticate
 from django.views.decorators.http import require_http_methods
 from django.contrib import messages
 from django.contrib.auth import logout
-from django.shortcuts import redirect
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
+from .forms import PhotoForm
+from .models import Photo, Tag
 
 def home(request):
-  photo = Photo.objects.all()
+  photos = Photo.objects.all()
   tags = Tag.objects.all()
-  return render(request, 'home.html', {'photo': photo, 'tags': tags})
+  return render(request, 'home.html', {'photos': photos, 'tags': tags})
+
+def increment_view_count(photo):
+    photo.view_count += 1
+    photo.save()
 
 def photo_detail(request, pk):
-  photo = get_object_or_404(Photo, pk=pk)
-  return render(request, 'photo_detail.html', {'photo': photo})
+    photo = get_object_or_404(Photo, pk=pk)
+    if request.user.is_authenticated:
+        if request.user == photo.uploader:
+            increment_view_count(photo)
+    else:
+        return redirect('login')
+    return render(request, 'photo_detail.html', {'photo': photo})
 
 @require_http_methods(["GET", "POST"])
 def login(request):
@@ -46,17 +56,10 @@ def like_photo(request, pk):
     photo = get_object_or_404(Photo, pk=pk)
     if request.user in photo.likes.all():
         photo.likes.remove(request.user)
-    photo.likes.add(request.user)
+    else:
+        photo.likes.add(request.user)
     return redirect('photo_detail', pk=pk)
   
-@login_required
-def dislike_photo(request, pk):
-    photo = get_object_or_404(Photo, pk=pk)
-    if request.user in photo.likes.all():
-        photo.likes.remove(request.user)
-    photo.dislikes.add(request.user)
-    return redirect('photo_detail', pk=pk)
-
 def register(request):
     if request.method == 'POST':
         form = UserRegistrationForm(request.POST)
@@ -83,7 +86,13 @@ def profile(request):
         return redirect('profile')
   else:
     form = UserProfileForm(instance=profile)
-  return render(request, 'registration/profile.html', {'form': form})
+  user_photos = Photo.objects.filter(uploader=request.user).order_by('-created_at')
+  context = {
+      'form': form,
+      'profile': profile,
+      'user_photos': user_photos,
+  }
+  return render(request, 'registration/profile.html', context)
 
 @require_POST
 @login_required
@@ -91,3 +100,17 @@ def logout_user(request):
     logout(request)
     messages.success(request, 'You have been logged out.')
     return redirect('home')
+
+@login_required
+def add_photo(request):
+  if request.method == 'POST':
+    form = PhotoForm(request.POST, request.FILES)
+    if form.is_valid():
+      photo = form.save(commit=False)
+      photo.uploader = request.user
+      photo.save()
+      form.save_m2m()
+      return redirect('photo_detail', pk=photo.pk)
+  else:
+    form = PhotoForm()
+  return render(request, 'add_photo.html', {'form': form})
