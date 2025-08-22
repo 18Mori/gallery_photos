@@ -12,8 +12,6 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 import cloudinary
-import cloudinary.uploader
-import cloudinary.api
 import dj_database_url
 import os
 from dotenv import load_dotenv
@@ -40,7 +38,7 @@ cloudinary.config(
 )
 
 
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '127.0.0.1').split(',')
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '').split(',')
 
 
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
@@ -97,7 +95,7 @@ WSGI_APPLICATION = 'photo_gallery_pj.wsgi.application'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 DATABASES = {
-    'default': dj_database_url.config(default=os.getenv('DATABASE_URL'),conn_max_age=600)
+    'default': dj_database_url.config(default=os.getenv('DATABASE_URL'),conn_max_age=600,conn_health_checks=True)
     
 
 }

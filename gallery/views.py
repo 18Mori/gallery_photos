@@ -2,7 +2,6 @@ from django.shortcuts import render, redirect, get_object_or_404
 from urllib3 import request
 from .models import Photo, Tag, userProfile 
 from .forms import UserRegistrationForm, UserProfileForm
-from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login as auth_login
 from django.contrib.auth import authenticate
 from django.views.decorators.http import require_http_methods
@@ -66,7 +65,7 @@ def register(request):
         if form.is_valid():
             user = form.save()
             auth_login(request, user)
-            return redirect('home')
+            return redirect('home') 
     else:
         form = UserRegistrationForm()
     
