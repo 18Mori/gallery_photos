@@ -17,9 +17,9 @@ def home(request):
   tags = Tag.objects.all()
   return render(request, 'home.html', {'photos': photos, 'tags': tags})
 
-def increment_view_count(photo):
-    photo.view_count += 1
-    photo.save()
+def increment_view_count(photos):
+    photos.view_count += 1
+    photos.save()
 
 def photo_detail(request, pk):
     photo = get_object_or_404(Photo, pk=pk)
